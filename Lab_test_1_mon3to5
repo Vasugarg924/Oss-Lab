@@ -1,0 +1,77 @@
+Q1. [CO 2, 20 Marks] You are tasked with monitoring vehicle traffic on a major highway. Your goal is to
+analyze traffic data collected every minute over a 24-hour period, simulate real-world noise, and detect
+congestion.
+1. Generate a NumPy array called vehicle_count to simulate traffic flow for 1440 minutes, where each
+entry represents the number of vehicles passing in that minute. Add random noise to represent real
+world sensor inaccuracies.
+2. Write Python code to apply a low-pass filter from scipy.signal to reduce noise in the data. 3. Compute
+and print the average number of vehicles passing each hour using NumPy. Store these averages in a
+separate array.
+4. Create a plot that displays the noisy data, the smoothed data, and the hourly averages. Use distinct
+markers to highlight the hourly averages.
+5. Write a function to detect periods of heavy traffic where the vehicle count exceeds 120 vehicles per
+minute for longer than 15 consecutive minutes. Highlight these congestion intervals on the graph
+using a different color or markers.
+
+
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+np.random.seed(0)
+minutes = 1440
+base_traffic = np.random.poisson(lam=50, size=minutes)  
+noise = np.random.normal(0, 5, size=minutes)
+vehicle_count = base_traffic + noise
+vehicle_count = np.clip(vehicle_count, 0, None)
+print(vehicle_count)
+
+
+
+from scipy.signal import butter,filtfilt
+def butter_lowpass(cutoff, fs, order=5):
+    nyquist = 0.5 * fs
+    normal_cutoff = cutoff / nyquist
+    b, a = butter(order, normal_cutoff, btype='low', analog=False)
+    return b, a
+
+def lowpass_filter(data, cutoff, fs, order=5):
+    b, a = butter_lowpass(cutoff, fs, order=order)
+    y = filtfilt(b, a, data)
+    return y
+
+
+
+
+hourly_averages = np.array([np.mean(vehicle_count[i:i+60]) for i in range(0, minutes, 60)])
+print(hourly_averages)
+
+
+
+fs=60
+cutoff=1
+smoothed_data = lowpass_filter(vehicle_count, cutoff, fs)
+print(smoothed_data)
+plt.plot(smoothed_data)
+plt.title('Smoothed data')
+plt.show()
+
+
+
+
+plt.title("Noise Data");
+plt.plot(noise)
+
+
+
+
+plt.title('Hourly Average')
+plt.plot(hourly_averages,marker='o')
+
+
+
+
+
+plt.plot(noise)
+plt.plot(smoothed_data)
+plt.plot(hourly_averages,marker='o')
